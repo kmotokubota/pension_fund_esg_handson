@@ -1,9 +1,9 @@
 -- =========================================================
--- GPIF スチュワードシップ活動分析 ハンズオン
+-- 年金基金 ESG/サステナビリティ分析 ハンズオン
 -- セットアップSQL
 -- =========================================================
 -- 作成日: 2025/12/23
--- 対象: GPIF向け3時間ハンズオン
+-- 対象: 3時間ハンズオン
 -- =========================================================
 
 -- =========================================================
@@ -106,10 +106,10 @@ COPY FILES
     FROM @pension_fund_esg_handson/branches/main/global_pf_esg_report/
     PATTERN = '.*\.pdf';
 
--- GPIFスチュワードシップ活動原則をコピー（もしあれば）
+-- スチュワードシップ活動原則をコピー（もしあれば）
 -- COPY FILES 
---     INTO @document_stage/gpif_stewardship/
---     FROM @pension_fund_esg_handson/branches/main/gpif_stewardship/
+--     INTO @document_stage/stewardship_principles/
+--     FROM @pension_fund_esg_handson/branches/main/stewardship_principles/
 --     PATTERN = '.*\.pdf';
 
 -- ディレクトリメタデータを更新
@@ -134,8 +134,8 @@ LIST @document_stage/global_pf_esg_report/;
 -- │   ├── CPP investments 2023 Report on Sustainable Investing.pdf
 -- │   ├── norges bank investment management_responsible-investment-2023.pdf
 -- │   └── Temasek-Sustainability-Report-2025.pdf
--- └── gpif_stewardship/        -- GPIFスチュワードシップ活動原則
---     └── gpif_20250331_stewardship_activity_principle.pdf
+-- └── stewardship_principles/  -- スチュワードシップ活動原則
+--     └── stewardship_activity_principle.pdf
 
 
 -- =========================================================
@@ -188,11 +188,11 @@ SELECT * FROM am_sustainability_report_chunk;
 SELECT COUNT(*) AS total_chunks FROM am_sustainability_report_chunk;
 
 -- ---------------------------------------------------------
--- Step 2-2: GPIFスチュワードシップ活動原則の処理
+-- Step 2-2: スチュワードシップ活動原則の処理
 -- ---------------------------------------------------------
 
 -- PDFからテキストを抽出
-CREATE OR REPLACE TABLE gpif_stewardship_2025 AS
+CREATE OR REPLACE TABLE stewardship_principles_2025 AS
 SELECT
     relative_path,
     GET_PRESIGNED_URL('@demo_db.demo_sustainability.document_stage', relative_path) AS scoped_file_url,
@@ -202,13 +202,13 @@ SELECT
     ) AS raw_text_dict,
     raw_text_dict:content::string AS raw_text
 FROM DIRECTORY('@demo_db.demo_sustainability.document_stage')
-WHERE SPLIT_PART(relative_path, '/', -1) = 'gpif_20250331_stewardship_activity_principle.pdf';
+WHERE SPLIT_PART(relative_path, '/', -1) = 'stewardship_activity_principle.pdf';
 
 -- 確認
-SELECT * FROM gpif_stewardship_2025;
+SELECT * FROM stewardship_principles_2025;
 
 -- チャンク化（セクション分類付き）
-CREATE OR REPLACE TABLE gpif_stewardship_2025_chunk AS
+CREATE OR REPLACE TABLE stewardship_principles_2025_chunk AS
 SELECT
     relative_path,
     scoped_file_url,
@@ -224,7 +224,7 @@ SELECT
         WHEN c.value::STRING LIKE '%（5）%' THEN '議決権行使'
         ELSE '概要・前文'
     END AS section_category
-FROM gpif_stewardship_2025 t,
+FROM stewardship_principles_2025 t,
 LATERAL FLATTEN(
     INPUT => SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER(
         t.raw_text,
@@ -235,13 +235,13 @@ LATERAL FLATTEN(
 ) c;
 
 -- 確認
-SELECT * FROM gpif_stewardship_2025_chunk;
+SELECT * FROM stewardship_principles_2025_chunk;
 
 -- ---------------------------------------------------------
--- Step 2-3: GPIFサステナビリティレポートの処理
+-- Step 2-3: 国内年金基金サステナビリティレポートの処理
 -- ---------------------------------------------------------
 
-CREATE OR REPLACE TABLE gpif_sustainability_report AS
+CREATE OR REPLACE TABLE domestic_pf_sustainability_report AS
 SELECT
     relative_path,
     GET_PRESIGNED_URL('@demo_db.demo_sustainability.document_stage', relative_path) AS scoped_file_url,
@@ -250,13 +250,13 @@ SELECT
         {'mode': 'LAYOUT', 'page_split': true}
     ) AS raw_text_dict
 FROM DIRECTORY('@demo_db.demo_sustainability.document_stage')
-WHERE relative_path LIKE '%gpif_Sustainability_Investment_Report_2024_E_02.pdf%';
+WHERE relative_path LIKE '%Sustainability_Investment_Report%.pdf%';
 
 -- 確認
-SELECT * FROM gpif_sustainability_report;
+SELECT * FROM domestic_pf_sustainability_report;
 
 -- チャンク化
-CREATE OR REPLACE TABLE gpif_sustainability_report_chunk AS
+CREATE OR REPLACE TABLE domestic_pf_sustainability_report_chunk AS
 SELECT
     t.relative_path,
     t.scoped_file_url,
@@ -266,7 +266,7 @@ SELECT
     c.value::STRING AS chunk_text,
     MD5_HEX(t.relative_path || ':' || p.value:index::INT || ':' || c.index::INT)::STRING AS chunk_id
 FROM 
-    gpif_sustainability_report t,
+    domestic_pf_sustainability_report t,
     LATERAL FLATTEN(input => t.raw_text_dict:pages) p,
     LATERAL FLATTEN(
         INPUT => SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER(
@@ -278,7 +278,7 @@ FROM
     ) c;
 
 -- 確認
-SELECT * FROM gpif_sustainability_report_chunk;
+SELECT * FROM domestic_pf_sustainability_report_chunk;
 
 -- ---------------------------------------------------------
 -- Step 2-4: 海外年金基金サステナビリティレポートの処理
@@ -327,11 +327,11 @@ SELECT * FROM global_pf_sustainability_report_chunk;
 -- Step 2-5: 統合ビューの作成
 -- ---------------------------------------------------------
 
--- 運用機関 + GPIFスチュワードシップ原則の統合ビュー（Cortex Search用）
+-- 運用機関 + スチュワードシップ原則の統合ビュー（Cortex Search用）
 CREATE OR REPLACE VIEW combined_sustainability_chunks_view AS
--- 1. GPIFのチャンクテーブル
+-- 1. スチュワードシップ原則のチャンクテーブル
 SELECT 
-    'GPIF' AS source_table,
+    'STEWARDSHIP' AS source_table,
     relative_path,
     scoped_file_url,
     file_name,
@@ -342,7 +342,7 @@ SELECT
     chunk_index AS chunk_index_in_file,
     NULL AS chunk_index_on_page
 FROM 
-    gpif_stewardship_2025_chunk
+    stewardship_principles_2025_chunk
 UNION ALL
 -- 2. AMのチャンクテーブル
 SELECT 
@@ -362,11 +362,11 @@ FROM
 -- 確認
 SELECT * FROM combined_sustainability_chunks_view LIMIT 10;
 
--- グローバル年金基金 + GPIFサステナビリティレポートの統合ビュー（グローバル分析用）
+-- グローバル年金基金 + 国内年金基金サステナビリティレポートの統合ビュー（グローバル分析用）
 CREATE OR REPLACE VIEW combined_global_sustainability_view AS
--- 1. GPIF サステナビリティレポート
+-- 1. 国内年金基金 サステナビリティレポート
 SELECT 
-    'GPIF_Sustainability' AS source_report,
+    'Domestic_PF_Sustainability' AS source_report,
     relative_path,
     scoped_file_url,
     file_name,
@@ -375,7 +375,7 @@ SELECT
     chunk_text,
     chunk_id
 FROM 
-    gpif_sustainability_report_chunk
+    domestic_pf_sustainability_report_chunk
 UNION ALL
 -- 2. Global PF サステナビリティレポート
 SELECT 
@@ -487,19 +487,19 @@ AS (
 USE DATABASE SNOWFLAKE_INTELLIGENCE;
 USE SCHEMA AGENTS;
 
-CREATE OR REPLACE CORTEX AGENT GPIF_STEWARDSHIP_AGENT
+CREATE OR REPLACE CORTEX AGENT STEWARDSHIP_AGENT
     LLM = 'claude-sonnet-4-5'
     TOOLS = (
         CORTEX_SEARCH (
             'DEMO_DB.DEMO_SUSTAINABILITY.SUSTAINABILITY_REPORT'
         )
     )
-    DESCRIPTION = 'GPIFスチュワードシップ活動原則に基づき、運用機関のサステナビリティレポートを分析・評価するエージェント'
+    DESCRIPTION = 'スチュワードシップ活動原則に基づき、運用機関のサステナビリティレポートを分析・評価するエージェント'
     SYSTEM_PROMPT = '
-あなたはGPIFスチュワードシップ活動原則の専門家です。
-運用機関のサステナビリティレポートを分析し、GPIFが定める5つの原則への対応状況を評価します。
+あなたはスチュワードシップ活動原則の専門家です。
+運用機関のサステナビリティレポートを分析し、5つの原則への対応状況を評価します。
 
-【GPIFスチュワードシップ活動原則】
+【スチュワードシップ活動原則】
 原則1: 運用受託機関におけるコーポレート・ガバナンス体制
 原則2: 運用受託機関における利益相反管理
 原則3: エンゲージメントを含むスチュワードシップ活動方針
@@ -529,9 +529,9 @@ USE SCHEMA DEMO_SUSTAINABILITY;
 -- データ件数の確認
 SELECT 'am_sustainability_report_chunk' AS table_name, COUNT(*) AS row_count FROM am_sustainability_report_chunk
 UNION ALL
-SELECT 'gpif_stewardship_2025_chunk', COUNT(*) FROM gpif_stewardship_2025_chunk
+SELECT 'stewardship_principles_2025_chunk', COUNT(*) FROM stewardship_principles_2025_chunk
 UNION ALL
-SELECT 'gpif_sustainability_report_chunk', COUNT(*) FROM gpif_sustainability_report_chunk
+SELECT 'domestic_pf_sustainability_report_chunk', COUNT(*) FROM domestic_pf_sustainability_report_chunk
 UNION ALL
 SELECT 'global_pf_sustainability_report_chunk', COUNT(*) FROM global_pf_sustainability_report_chunk;
 
@@ -581,10 +581,10 @@ SELECT AI_COMPLETE(
 -- =========================================================
 -- DROP TABLE IF EXISTS am_sustainability_report;
 -- DROP TABLE IF EXISTS am_sustainability_report_chunk;
--- DROP TABLE IF EXISTS gpif_stewardship_2025;
--- DROP TABLE IF EXISTS gpif_stewardship_2025_chunk;
--- DROP TABLE IF EXISTS gpif_sustainability_report;
--- DROP TABLE IF EXISTS gpif_sustainability_report_chunk;
+-- DROP TABLE IF EXISTS stewardship_principles_2025;
+-- DROP TABLE IF EXISTS stewardship_principles_2025_chunk;
+-- DROP TABLE IF EXISTS domestic_pf_sustainability_report;
+-- DROP TABLE IF EXISTS domestic_pf_sustainability_report_chunk;
 -- DROP TABLE IF EXISTS global_pf_sustainability_report;
 -- DROP TABLE IF EXISTS global_pf_sustainability_report_chunk;
 -- DROP VIEW IF EXISTS combined_sustainability_chunks_view;
@@ -593,5 +593,5 @@ SELECT AI_COMPLETE(
 -- DROP CORTEX SEARCH SERVICE IF EXISTS global_pf_sustainability_report;
 -- USE DATABASE SNOWFLAKE_INTELLIGENCE;
 -- USE SCHEMA AGENTS;
--- DROP CORTEX AGENT IF EXISTS GPIF_STEWARDSHIP_AGENT;
+-- DROP CORTEX AGENT IF EXISTS STEWARDSHIP_AGENT;
 
