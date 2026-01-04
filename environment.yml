@@ -1,9 +1,0 @@
-name: gpif_handson_app
-channels:
-  - snowflake
-dependencies:
-  - pandas
-  - snowflake-snowpark-python
-  - snowflake-core
-  - streamlit
-
