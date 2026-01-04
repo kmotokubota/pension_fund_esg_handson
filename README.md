@@ -30,32 +30,12 @@ pension_fund_esg_handson/
 ## ハンズオンの流れ
 
 ### 1. Git統合によるセットアップ
-
-Snowflakeワークシートで以下を実行：
-
-```sql
-USE ROLE ACCOUNTADMIN;
-
--- API統合の作成
-CREATE OR REPLACE API INTEGRATION git_api_integration
-    API_PROVIDER = git_https_api
-    API_ALLOWED_PREFIXES = ('https://github.com/kmotokubota/')
-    ENABLED = TRUE;
-
--- Gitリポジトリの登録
-CREATE OR REPLACE GIT REPOSITORY pension_fund_esg_handson
-    API_INTEGRATION = git_api_integration
-    ORIGIN = 'https://github.com/kmotokubota/pension_fund_esg_handson.git';
-
--- setup.sqlの実行
--- (Snowsightでsetup.sqlの内容をコピー＆実行)
-```
+Snowflakeワークシートでsetup.sqlの実行 (Snowsightでsetup.sqlの内容をコピー＆実行)
 
 ### 2. Notebookの実行
 Notebook内のセルを実行し、PDF資料の構造化やCortex Search、Cortex Agentの作成を実行します。
 
 ### 3. Streamlitアプリの実行
-
 Snowsight > Streamlit > Create Streamlit App から新規アプリを作成し、`mainpage.py` の内容をコピーして実行します。
 
 ### 4. Snowflake Intelligenceの実行
