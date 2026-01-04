@@ -27,30 +27,7 @@ pension_fund_esg_handson/
 └── global_pf_esg_report/        # 海外年金基金サステナビリティレポート
 ```
 
-## ハンズオンの流れ（3時間）
-
-### セッション1: 環境構築（60分）
-1. データベース・スキーマ・ウェアハウスの作成
-2. クロスリージョン推論の有効化
-3. Git統合・API統合の設定
-4. PDFファイルのステージへの取り込み
-
-### セッション2: データ準備（60分）
-1. AI_PARSE_DOCUMENTによるPDFテキスト抽出
-2. SPLIT_TEXT_RECURSIVE_CHARACTERによるチャンク化
-3. 統合ビューの作成
-
-### セッション3: Cortex AI活用（60分）
-1. Cortex Search Serviceの作成
-2. Cortex Agentの作成
-3. Streamlitアプリでの動作確認
-
-## 前提条件
-
-- Snowflakeアカウント（ACCOUNTADMIN権限推奨）
-- クロスリージョン推論が利用可能であること
-
-## クイックスタート
+## ハンズオンの流れ
 
 ### 1. Git統合によるセットアップ
 
