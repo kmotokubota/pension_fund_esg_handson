@@ -51,9 +51,14 @@ CREATE OR REPLACE GIT REPOSITORY pension_fund_esg_handson
 -- (Snowsightでsetup.sqlの内容をコピー＆実行)
 ```
 
-### 2. Streamlitアプリの実行
+### 2. Notebookの実行
+Notebook内のセルを実行し、PDF資料の構造化やCortex Search、Cortex Agentの作成を実行します。
+
+### 3. Streamlitアプリの実行
 
 Snowsight > Streamlit > Create Streamlit App から新規アプリを作成し、`mainpage.py` の内容をコピーして実行します。
+
+### 4. Snowflake Intelligenceの実行
 
 ## 関連リンク
 
