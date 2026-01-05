@@ -612,6 +612,7 @@ with tab4:
     2. ステージに保存
     3. AI_PARSE_DOCUMENTでテキスト抽出
     4. チャンク化してデータベースに格納
+    5. Cortex Searchインデックスを更新
     """)
     
     st.markdown("---")
