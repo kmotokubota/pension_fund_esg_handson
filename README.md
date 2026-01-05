@@ -50,12 +50,6 @@ Snowsight > Streamlit > Create Streamlit App から新規アプリを作成し�
 
 ### 4. Snowflake Intelligenceの実行
 
-## 関連リンク
-
-- [Snowflake Cortex AI ドキュメント](https://docs.snowflake.com/en/guides-overview-ai-features)
-- [Cortex Search](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-overview)
-- [Cortex Agent](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agent)
-
 ## ライセンス
 
 This repository is for demonstration purposes.
