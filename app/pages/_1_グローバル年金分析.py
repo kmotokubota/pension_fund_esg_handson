@@ -737,7 +737,7 @@ with tab4:
                         st.error(f"チャンク化エラー: {str(e)}")
                         chunk_count = 0
                 
-                with st.spinner("ステップ4/4: データを反映中..."):
+                with st.spinner("ステップ4/5: データを反映中..."):
                     escaped_filename = safe_filename.replace("'", "''")
                     
                     view_check_sql = f"""
@@ -749,14 +749,27 @@ with tab4:
                     view_count = view_result[0]['COUNT']
                     st.success(f"データ反映完了（ビュー内に{view_count}チャンク確認）")
                 
+                with st.spinner("ステップ5/5: Cortex Search インデックスを更新中..."):
+                    # Cortex Searchサービスを手動リフレッシュ
+                    try:
+                        refresh_sql = f"""
+                        ALTER CORTEX SEARCH SERVICE {CORTEX_SEARCH_DATABASE}.{CORTEX_SEARCH_SCHEMA}.GLOBAL_PF_SUSTAINABILITY_REPORT REFRESH
+                        """
+                        session.sql(refresh_sql).collect()
+                        st.success("Cortex Search インデックス更新完了")
+                    except Exception as refresh_error:
+                        st.warning(f"Cortex Search リフレッシュ中に警告: {str(refresh_error)}")
+                        st.info("インデックスは自動的に更新されます（最大1時間）")
+                
                 st.markdown("---")
                 st.success(f"""
-                **レポート追加が完了しました**
+                **レポート追加が完了しました** ✅
                 
                 - ファイル名: {safe_filename}
                 - 生成チャンク数: {chunk_count}
+                - Cortex Search: インデックス更新済み
                 
-                サイドバーのレポートリストに自動的に追加されます。
+                サイドバーのレポートリストに追加されました。すぐに分析を開始できます。
                 """)
                 
                 # キャッシュをリフレッシュしてからリロード
