@@ -17,14 +17,24 @@ Snowflake Cortex AI を活用した年金基金サステナビリティレポー
 ```
 pension_fund_esg_handson/
 ├── README.md
-├── setup.sql                    # セットアップSQL
-├── environment.yml              # Python依存パッケージ
-├── mainpage.py                  # Streamlitメインページ
-├── pages/
-│   ├── _1_グローバル年金分析.py    # グローバル年金基金分析アプリ
-│   └── _2_スチュワードシップ原則評価.py  # スチュワードシップ原則評価アプリ
-├── am_esg_report/               # 運用機関サステナビリティレポート
-└── global_pf_esg_report/        # 海外年金基金サステナビリティレポート
+├── setup.sql                           # セットアップSQL
+├── app/
+│   ├── mainpage.py                     # Streamlitメインページ
+│   ├── environment.yml                 # Python依存パッケージ
+│   └── pages/
+│       ├── 1_global_analysis.py        # グローバル年金基金分析
+│       ├── 2_stewardship_evaluation.py # スチュワードシップ原則評価
+│       └── 3_cortex_search_rag.py      # Cortex Search RAG
+├── handson/
+│   └── handson.ipynb                   # ハンズオン用Notebook
+├── data/                               # 初期データ
+│   ├── am_esg_report/                  # 運用機関ESGレポート
+│   ├── global_pf_esg_report/           # 海外年金基金レポート
+│   ├── gpif_esg_report/                # GPIFレポート
+│   └── stewardship_principles/         # スチュワードシップ原則
+└── additional_data/                    # 追加データ
+    ├── am_esg_report/                  # 追加運用機関レポート
+    └── global_pf_esg_report/           # 追加海外年金基金レポート
 ```
 
 ## ハンズオンの流れ
