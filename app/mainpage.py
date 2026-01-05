@@ -78,19 +78,6 @@ def render_home_page():
         | **Cortex Search** | セマンティック検索 |
         | **Cortex Agent** | 自然言語での問い合わせ処理 |
         | **AI_PARSE_DOCUMENT** | PDFからのテキスト抽出 |
-        
-        ---
-        
-        ### 🎯 対象データ
-        
-        - **GPIFサステナビリティレポート**
-        - **海外年金基金レポート**
-          - CalPERS / CalSTRS (米国)
-          - CPP Investments (カナダ)
-          - Norges Bank (ノルウェー)
-          - Temasek (シンガポール) 等
-        - **国内運用機関レポート**
-          - AMOne / SMTAM / りそな / MUTB
         """)
 
     st.markdown("---")
