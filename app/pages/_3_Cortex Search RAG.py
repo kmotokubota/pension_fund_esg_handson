@@ -1,14 +1,8 @@
-# ------------------------------------------------------------
-# Streamlit in Snowflake: Cortex Search RAG チャットUI版
-#  - Cortex Agent不使用（コスト最適化版）
-#  - Cortex Search + Cortex Complete を直接使用
-#  - チャットバブル（st.chat_message / st.chat_input）
-#  - 履歴ウィンドウ（直近k往復を文脈へ）
-#  - 参照PDF/URL/チャンクの可視化
-# ------------------------------------------------------------
-# Based on original code by Sakuragi (Snowflake)
-# Modified for Sustainability Report Analysis
-# ------------------------------------------------------------
+# =========================================================
+# Cortex Search RAG チャットアプリ（コスト最適化版）
+# - Cortex Agent不使用
+# - Cortex Search + Cortex Complete を直接使用
+# =========================================================
 
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -16,6 +10,107 @@ import time
 import streamlit as st
 from snowflake.snowpark.context import get_active_session
 from snowflake.core import Root
+
+# =========================================================
+# ページ設定
+# =========================================================
+st.set_page_config(
+    page_title="Cortex Search RAG",
+    page_icon="🔍",
+    layout="wide"
+)
+
+# =========================================================
+# カスタムCSS（Figma風デザイン）
+# =========================================================
+st.markdown("""
+<style>
+    /* メインカラー設定 */
+    :root {
+        --primary-purple: #7B61FF;
+        --primary-purple-light: #A78BFA;
+        --bg-light: #FAFAFA;
+        --text-dark: #1E1E1E;
+        --text-gray: #6B7280;
+        --border-color: #E5E7EB;
+    }
+    
+    /* ヘッダースタイル */
+    .main-header {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        line-height: 1.2;
+    }
+    
+    .sub-header {
+        font-size: 1rem;
+        color: var(--text-gray);
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    
+    /* サイドバー */
+    [data-testid="stSidebar"] {
+        background-color: var(--bg-light);
+    }
+    
+    [data-testid="stSidebar"] .stMarkdown h1,
+    [data-testid="stSidebar"] .stMarkdown h2,
+    [data-testid="stSidebar"] .stMarkdown h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    /* ボタンスタイル */
+    .stButton > button[kind="primary"] {
+        background-color: var(--primary-purple);
+        border: none;
+        font-weight: 500;
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        background-color: var(--primary-purple-light);
+    }
+    
+    /* Expanderスタイル */
+    .streamlit-expanderHeader {
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    /* 区切り線 */
+    hr {
+        border-color: var(--border-color);
+        margin: 24px 0;
+    }
+    
+    /* セクションヘッダー */
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin: 16px 0 8px 0;
+        line-height: 1.3;
+    }
+    
+    /* チャットメッセージ */
+    [data-testid="stChatMessage"] {
+        border-radius: 12px;
+    }
+    
+    /* 設定カード */
+    .settings-card {
+        background-color: var(--bg-light);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Cortex Complete をSQL経由で呼び出す関数
 def cortex_complete(session, model: str, prompt: str) -> str:
@@ -227,10 +322,10 @@ def stream_text(container, full_text: str, step: int = 80):
 # =====================================================
 
 def init_sidebar():
-    st.sidebar.header("⚙️ 設定")
+    st.sidebar.markdown("## ⚙️ 設定")
     
     # --- Cortex Search Service選択 ---
-    st.sidebar.subheader("検索サービス")
+    st.sidebar.markdown("### 🔍 検索サービス")
     
     service_options = {s["name"]: s for s in SEARCH_SERVICES}
     selected_name = st.sidebar.selectbox(
@@ -244,7 +339,7 @@ def init_sidebar():
     st.sidebar.divider()
     
     # --- モデル選択 ---
-    st.sidebar.subheader("LLMモデル")
+    st.sidebar.markdown("### 🤖 LLMモデル")
     
     if "selected_model" not in st.session_state:
         st.session_state.selected_model = MODELS[0]
@@ -258,7 +353,7 @@ def init_sidebar():
     st.sidebar.divider()
     
     # --- 検索パラメータ ---
-    st.sidebar.subheader("検索パラメータ")
+    st.sidebar.markdown("### 📊 検索パラメータ")
     
     if "num_retrieved_chunks" not in st.session_state:
         st.session_state.num_retrieved_chunks = 5
@@ -285,7 +380,7 @@ def init_sidebar():
     st.sidebar.divider()
     
     # --- フィルタ（オプション） ---
-    st.sidebar.subheader("フィルタ（オプション）")
+    st.sidebar.markdown("### 📁 フィルタ")
     
     # ファイル名一覧を取得
     available_files = get_available_files(st.session_state.selected_service["short_name"])
@@ -309,7 +404,7 @@ def init_sidebar():
     st.sidebar.divider()
     
     # --- 履歴管理 ---
-    st.sidebar.subheader("履歴管理")
+    st.sidebar.markdown("### 📝 履歴管理")
     
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
@@ -377,32 +472,30 @@ def render_chat_history():
 # =====================================================
 
 def main():
-    st.set_page_config(
-        page_title="Cortex Search RAG",
-        page_icon="🔍",
-        layout="wide",
-    )
-    
-    st.title("🔍 Cortex Search RAG チャット")
-    st.caption("Cortex Search + Cortex Complete によるコスト最適化RAG")
+    # ヘッダー
+    st.title("🔍 Cortex Search RAG")
+    st.markdown('<p class="sub-header">Cortex Search + Cortex Complete によるコスト最適化RAG検索</p>', unsafe_allow_html=True)
     
     # サイドバー初期化
     init_sidebar()
     
     service = st.session_state.get("selected_service")
     if not service:
-        st.info("左のサイドバーでサービスを選択してください。")
+        st.info("👈 左のサイドバーで検索サービスを選択してください。")
         return
     
     # 現在の設定を表示（コンパクト表示）
     with st.expander("⚙️ 現在の設定", expanded=False):
-        st.caption(f"**検索サービス:** {service['name']}")
-        st.caption(f"**LLMモデル:** {st.session_state.selected_model}")
-        st.caption(f"**参照チャンク数:** {st.session_state.num_retrieved_chunks}")
-        if st.session_state.get("filter_enabled") and st.session_state.get("filter_file_name"):
-            st.caption(f"**フィルタ:** {st.session_state.filter_file_name}")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f"**検索サービス**<br><span style='color: #6B7280;'>{service['name']}</span>", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"**LLMモデル**<br><span style='color: #6B7280;'>{st.session_state.selected_model}</span>", unsafe_allow_html=True)
+        with col3:
+            filter_text = st.session_state.filter_file_name if st.session_state.get("filter_enabled") and st.session_state.get("filter_file_name") else "なし"
+            st.markdown(f"**フィルタ**<br><span style='color: #6B7280;'>{filter_text}</span>", unsafe_allow_html=True)
     
-    st.divider()
+    st.markdown("---")
     
     # チャット履歴を表示
     render_chat_history()
