@@ -198,8 +198,8 @@ GPIF_PRINCIPLES = {
 # =========================================================
 # セッション状態の初期化
 # =========================================================
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = []
+if 'stewardship_chat_history' not in st.session_state:
+    st.session_state.stewardship_chat_history = []
 if 'agent_session_id' not in st.session_state:
     st.session_state.agent_session_id = None
 if 'selected_company' not in st.session_state:
@@ -590,7 +590,7 @@ with tab1:
         st.header("自然言語での検索・問い合わせ")
     with col2:
         if st.button("履歴クリア", key="clear_tab1", use_container_width=True):
-            st.session_state.chat_history = []
+            st.session_state.stewardship_chat_history = []
             st.success("クリアしました")
             st.rerun()
     
@@ -608,7 +608,7 @@ with tab1:
     chat_container = st.container()
     
     with chat_container:
-        for message in st.session_state.chat_history:
+        for message in st.session_state.stewardship_chat_history:
             # 古いデータ形式への対応（'role'キーがない場合はスキップ）
             if 'role' not in message or 'content' not in message:
                 continue
@@ -631,7 +631,7 @@ with tab1:
     user_query = st.chat_input("質問を入力してください...")
     
     if user_query:
-        st.session_state.chat_history.append({
+        st.session_state.stewardship_chat_history.append({
             'role': 'user',
             'content': user_query
         })
@@ -662,7 +662,7 @@ with tab1:
                             st.caption(f"> {text[:300]}..." if len(str(text)) > 300 else text)
                             st.markdown("---")
                 
-                st.session_state.chat_history.append({
+                st.session_state.stewardship_chat_history.append({
                     'role': 'assistant',
                     'content': response_content,
                     'citations': citations
@@ -670,7 +670,7 @@ with tab1:
             else:
                 error_msg = "申し訳ございません。応答の取得に失敗しました。"
                 st.error(error_msg)
-                st.session_state.chat_history.append({
+                st.session_state.stewardship_chat_history.append({
                     'role': 'assistant',
                     'content': error_msg,
                     'citations': []

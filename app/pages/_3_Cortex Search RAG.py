@@ -406,17 +406,17 @@ def init_sidebar():
     # --- 履歴管理 ---
     st.sidebar.markdown("### 📝 履歴管理")
     
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
+    if "rag_chat_history" not in st.session_state:
+        st.session_state.rag_chat_history = []
     
     col1, col2 = st.sidebar.columns(2)
     with col1:
         if st.button("🗑️ 履歴クリア", use_container_width=True):
-            st.session_state.chat_history = []
+            st.session_state.rag_chat_history = []
             st.rerun()
     
     with col2:
-        st.sidebar.caption(f"履歴: {len(st.session_state.chat_history)}件")
+        st.sidebar.caption(f"履歴: {len(st.session_state.rag_chat_history)}件")
     
     # --- 情報表示 ---
     st.sidebar.divider()
@@ -452,7 +452,7 @@ def render_context_expander(context_rows: List[Dict[str, Any]]):
 
 def render_chat_history():
     """過去のチャット履歴を表示"""
-    for turn in st.session_state.get("chat_history", []):
+    for turn in st.session_state.get("rag_chat_history", []):
         # ユーザーメッセージ
         with st.chat_message("user"):
             st.markdown(turn.get("question", ""))
@@ -530,7 +530,7 @@ def main():
             with st.spinner("回答生成中..."):
                 # 2) 履歴テキスト構築
                 history_text = build_history_text(
-                    st.session_state.get("chat_history", []),
+                    st.session_state.get("rag_chat_history", []),
                     st.session_state.history_k
                 )
                 
@@ -567,7 +567,7 @@ def main():
             "model": st.session_state.selected_model,
             "contexts": context_rows,
         }
-        st.session_state.chat_history.append(turn)
+        st.session_state.rag_chat_history.append(turn)
 
 
 if __name__ == "__main__":
