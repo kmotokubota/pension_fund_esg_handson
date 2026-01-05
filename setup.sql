@@ -3,7 +3,7 @@
 -- セットアップSQL
 -- =========================================================
 -- 作成日: 2025/12/23
--- 対象: 3時間ハンズオン
+-- 作成者: Kosuke Motokubota
 -- =========================================================
 
 -- =========================================================
@@ -74,17 +74,6 @@ CREATE OR REPLACE GIT REPOSITORY pension_fund_esg_handson
 -- Gitリポジトリの確認
 SHOW GIT REPOSITORIES;
 
--- リポジトリの内容を確認（ブランチ一覧）
-SHOW GIT BRANCHES IN GIT REPOSITORY pension_fund_esg_handson;
-
--- リポジトリのファイル一覧を確認
-LS @pension_fund_esg_handson/branches/main/;
-LS @pension_fund_esg_handson/branches/main/data/;
-LS @pension_fund_esg_handson/branches/main/data/am_esg_report/;
-LS @pension_fund_esg_handson/branches/main/data/global_pf_esg_report/;
-LS @pension_fund_esg_handson/branches/main/data/gpif_esg_report/;
-LS @pension_fund_esg_handson/branches/main/data/stewardship_principles/;
-
 -- ---------------------------------------------------------
 -- Step 1-6: GitからステージへPDFファイルをコピー
 -- ---------------------------------------------------------
@@ -116,47 +105,6 @@ COPY FILES
 
 -- ディレクトリメタデータを更新
 ALTER STAGE document_stage REFRESH;
-
--- コピー結果の確認
-LIST @document_stage/am_esg_report/;
-LIST @document_stage/global_pf_esg_report/;
-LIST @document_stage/gpif_esg_report/;
-LIST @document_stage/stewardship_principles/;
-
--- GitHubリポジトリのディレクトリ構造（参考）
--- pension_fund_esg_handson/
--- ├── data/
--- │   ├── am_esg_report/           -- 運用機関サステナビリティレポート
--- │   ├── global_pf_esg_report/    -- 海外年金基金サステナビリティレポート
--- │   ├── gpif_esg_report/         -- GPIF（国内年金基金）サステナビリティレポート
--- │   └── stewardship_principles/  -- スチュワードシップ活動原則
--- ├── handson/
--- │   └── handson.ipynb            -- ハンズオン用Notebook
--- └── app/
---     ├── mainpage.py              -- Streamlitメインページ
---     ├── environment.yml          -- 依存パッケージ
---     └── pages/                   -- Streamlitサブページ
-
--- Snowflakeステージ内のディレクトリ構造（コピー後）
--- document_stage/
--- ├── am_esg_report/           -- 運用機関サステナビリティレポート
--- │   ├── amone_sustainability_report_j2024.pdf
--- │   ├── mutb_stewardship_2025.pdf
--- │   ├── resona_am_sus_report2024-2025.pdf
--- │   └── smtam_SustainabilityReport_20242025_A3.pdf
--- ├── global_pf_esg_report/    -- 海外年金基金サステナビリティレポート
--- │   ├── 2023 Annual Report of the Thrift Savings Plan.pdf
--- │   ├── 2023 National Pension Service Sustainability Report.pdf
--- │   ├── CalPERS' Sustainable Investments 2030 Strategy.pdf
--- │   ├── CalSTRS Sustainability Report 2023-24.pdf
--- │   ├── CPP investments 2023 Report on Sustainable Investing.pdf
--- │   ├── norges bank investment management_responsible-investment-2023.pdf
--- │   └── Temasek-Sustainability-Report-2025.pdf
--- ├── gpif_esg_report/         -- GPIF（国内年金基金）サステナビリティレポート
--- │   └── gpif_Sustainability_Investment_Report_2024_E_02.pdf
--- └── stewardship_principles/  -- スチュワードシップ活動原則
---     └── gpif_20250331_stewardship_activity_principle.pdf
-
 
 -- =========================================================
 -- セッション2: Notebook & Streamlitの作成
