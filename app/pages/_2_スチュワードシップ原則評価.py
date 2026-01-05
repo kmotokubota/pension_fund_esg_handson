@@ -1015,52 +1015,64 @@ with tab4:
                     view_count = view_result[0]['COUNT']
                     st.success(f"データ反映完了（ビュー内に{view_count}チャンク確認）")
                 
-                with st.spinner("ステップ5/5: Cortex Search インデックスを更新中..."):
-                    # Cortex Searchサービスを手動リフレッシュ
-                    import time
-                    refresh_success = False
+                # ステップ5: Cortex Search インデックス更新
+                st.markdown("**ステップ5/5: Cortex Search インデックスを更新中...**")
+                import time
+                refresh_success = False
+                
+                # プログレス表示用のプレースホルダー
+                progress_placeholder = st.empty()
+                status_placeholder = st.empty()
+                
+                try:
+                    status_placeholder.info("🔄 リフレッシュコマンドを実行中...")
                     
-                    try:
-                        refresh_sql = f"""
-                        ALTER CORTEX SEARCH SERVICE {DATA_DATABASE}.{DATA_SCHEMA}.SUSTAINABILITY_REPORT REFRESH
-                        """
-                        session.sql(refresh_sql).collect()
-                        st.info("リフレッシュコマンド実行完了。インデックス更新を確認中...")
+                    refresh_sql = f"""
+                    ALTER CORTEX SEARCH SERVICE {DATA_DATABASE}.{DATA_SCHEMA}.SUSTAINABILITY_REPORT REFRESH
+                    """
+                    session.sql(refresh_sql).collect()
+                    
+                    status_placeholder.info("✓ リフレッシュコマンド実行完了。インデックス更新を確認中...")
+                    
+                    # リフレッシュ完了を待機して検証（最大60秒、5秒間隔で確認）
+                    max_retries = 12
+                    progress_bar = progress_placeholder.progress(0, text="インデックス更新を確認中...")
+                    
+                    for attempt in range(max_retries):
+                        # プログレスバー更新
+                        progress = (attempt + 1) / max_retries
+                        progress_bar.progress(progress, text=f"インデックス更新待機中... ({(attempt+1)*5}秒/{max_retries*5}秒)")
                         
-                        # リフレッシュ完了を待機して検証（最大60秒、5秒間隔で確認）
-                        max_retries = 12
-                        for attempt in range(max_retries):
-                            time.sleep(5)
-                            
-                            # Cortex Searchで検索可能か確認
-                            verify_sql = f"""
-                            SELECT COUNT(*) as found_count
-                            FROM TABLE(
-                                SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
-                                    '{DATA_DATABASE}.{DATA_SCHEMA}.SUSTAINABILITY_REPORT',
-                                    '{escaped_filename}',
-                                    1
-                                )
+                        time.sleep(5)
+                        
+                        # Cortex Searchで検索可能か確認
+                        verify_sql = f"""
+                        SELECT COUNT(*) as found_count
+                        FROM TABLE(
+                            SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+                                '{DATA_DATABASE}.{DATA_SCHEMA}.SUSTAINABILITY_REPORT',
+                                '{escaped_filename}',
+                                1
                             )
-                            """
-                            try:
-                                verify_result = session.sql(verify_sql).collect()
-                                if verify_result and verify_result[0]['FOUND_COUNT'] > 0:
-                                    refresh_success = True
-                                    st.success(f"Cortex Search インデックス更新完了 ✅ （{(attempt+1)*5}秒で確認）")
-                                    break
-                            except Exception:
-                                pass
-                            
-                            if attempt < max_retries - 1:
-                                st.info(f"インデックス更新待機中... ({(attempt+1)*5}秒/{max_retries*5}秒)")
+                        )
+                        """
+                        try:
+                            verify_result = session.sql(verify_sql).collect()
+                            if verify_result and verify_result[0]['FOUND_COUNT'] > 0:
+                                refresh_success = True
+                                progress_bar.progress(1.0, text="完了!")
+                                status_placeholder.success(f"✅ Cortex Search インデックス更新完了（{(attempt+1)*5}秒で確認）")
+                                break
+                        except Exception:
+                            pass
+                    
+                    if not refresh_success:
+                        progress_bar.progress(1.0, text="タイムアウト")
+                        status_placeholder.warning("⚠️ インデックス更新の確認がタイムアウトしました。数分後に検索可能になります。")
                         
-                        if not refresh_success:
-                            st.warning("インデックス更新の確認がタイムアウトしました。数分後に検索可能になります。")
-                            
-                    except Exception as refresh_error:
-                        st.warning(f"Cortex Search リフレッシュ中に警告: {str(refresh_error)}")
-                        st.info("インデックスは自動的に更新されます（最大1時間）")
+                except Exception as refresh_error:
+                    status_placeholder.warning(f"⚠️ Cortex Search リフレッシュ中に警告: {str(refresh_error)}")
+                    st.info("インデックスは自動的に更新されます（最大1時間）")
                 
                 st.markdown("---")
                 if refresh_success:
