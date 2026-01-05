@@ -2,11 +2,17 @@
 # 年金基金 ESG/サステナビリティ分析 ハンズオン
 # メインページ
 # =========================================================
-
-import streamlit as st
+# 最終更新: 2025/01
+# =========================================================
 
 # =========================================================
-# ページ設定
+# 必要なライブラリのインポート
+# =========================================================
+import streamlit as st
+from snowflake.snowpark.context import get_active_session
+
+# =========================================================
+# ページ設定とセッション初期化
 # =========================================================
 st.set_page_config(
     page_title="年金基金 ESG分析",
@@ -15,122 +21,172 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# =========================================================
-# カスタムCSS
-# =========================================================
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 3rem;
-        font-weight: 700;
-        color: #1E1E1E;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.2rem;
-        color: #6B7280;
-        margin-bottom: 2rem;
-    }
-    .feature-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        color: white;
-        margin-bottom: 1rem;
-    }
-    .feature-title {
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-    .feature-desc {
-        font-size: 0.95rem;
-        opacity: 0.9;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Snowflakeセッションの取得
+@st.cache_resource
+def get_snowflake_session():
+    """Snowflakeセッションを取得"""
+    return get_active_session()
+
+session = get_snowflake_session()
 
 # =========================================================
-# メインコンテンツ
+# メインページコンテンツ
 # =========================================================
-
-st.markdown('<p class="main-header">🌍 年金基金 ESG/サステナビリティ分析</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Snowflake Cortex AI を活用した年金基金レポート分析プラットフォーム</p>', unsafe_allow_html=True)
-
-st.divider()
-
-# 機能紹介
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("""
-    ### 📊 グローバル年金分析
+def render_home_page():
+    """ホームページを表示"""
+    st.title("🌍 年金基金 ESG/サステナビリティ分析")
+    st.markdown("### Snowflake Cortex AI を活用した年金基金レポート分析プラットフォーム")
     
-    世界の主要年金基金のサステナビリティレポートを分析・比較
+    st.markdown("---")
     
-    **主な機能:**
-    - レポート要約（AI Complete）
-    - 複数レポートの比較分析
-    - Cortex Searchによる検索
+    # 基本情報を2列で表示
+    col1, col2 = st.columns(2)
     
-    👉 左のサイドバーから「グローバル年金分析」を選択
-    """)
+    with col1:
+        st.markdown("""
+        ### 📋 このアプリケーションについて
+        
+        本アプリケーションは、**Snowflake Cortex AI** の各種機能を活用し、
+        年金基金および運用機関のサステナビリティレポートを分析するシステムです。
+        
+        ---
+        
+        #### 🔹 主な機能
+        
+        **1. グローバル年金基金サステナビリティ分析**
+        - 海外主要年金基金のレポート要約
+        - トレンド分析・共通項抽出
+        - GPIFとのGAP分析
+        
+        **2. スチュワードシップ原則 対応度評価**
+        - GPIFスチュワードシップ活動原則（5原則）に基づく評価
+        - Cortex Agentを活用した自然言語検索
+        - 運用機関別の対応状況分析
+        
+        **3. Cortex Search RAG**
+        - コスト最適化されたRAG検索
+        - Cortex Search + Completeの直接利用
+        """)
+        
+    with col2:
+        st.markdown("""
+        ### 🛠️ 使用するSnowflake Cortex機能
+        
+        | 機能 | 説明 |
+        |------|------|
+        | **AI_COMPLETE** | テキスト生成・要約・分析 |
+        | **Cortex Search** | セマンティック検索 |
+        | **Cortex Agent** | 自然言語での問い合わせ処理 |
+        | **AI_PARSE_DOCUMENT** | PDFからのテキスト抽出 |
+        
+        ---
+        
+        ### 🎯 対象データ
+        
+        - **GPIFサステナビリティレポート**
+        - **海外年金基金レポート**
+          - CalPERS / CalSTRS (米国)
+          - CPP Investments (カナダ)
+          - Norges Bank (ノルウェー)
+          - Temasek (シンガポール) 等
+        - **国内運用機関レポート**
+          - AMOne / SMTAM / りそな / MUTB
+        """)
 
-with col2:
-    st.markdown("""
-    ### 📋 スチュワードシップ原則評価
+    st.markdown("---")
     
-    運用機関のレポートをGPIFスチュワードシップ活動原則に基づき評価
+    # ページ構成
+    st.markdown("### 📚 ページ構成")
     
-    **主な機能:**
-    - Cortex Agentによる対話型分析
-    - 5つの原則に基づく評価
-    - 出典付きの詳細回答
+    col1, col2, col3 = st.columns(3)
     
-    👉 左のサイドバーから「スチュワードシップ原則評価」を選択
-    """)
-
-with col3:
-    st.markdown("""
-    ### 🔍 Cortex Search RAG
+    with col1:
+        st.markdown("""
+        #### 📊 ページ1: グローバル年金分析
+        
+        海外主要年金基金のサステナビリティレポートを分析し、
+        グローバルトレンドとGPIFとの比較を行います。
+        
+        **主な機能:**
+        - レポートのサマライズ
+        - 複数レポートからのトレンド抽出
+        - GPIFとのGAP分析
+        - 新規レポートの追加
+        """)
     
-    コスト最適化されたRAG検索インターフェース
+    with col2:
+        st.markdown("""
+        #### 🤖 ページ2: スチュワードシップ原則評価
+        
+        GPIFスチュワードシップ活動原則に基づき、
+        運用機関のレポートを評価します。
+        
+        **主な機能:**
+        - 自然言語での検索・問い合わせ
+        - 原則別の対応度評価
+        - 総合評価レポート生成
+        """)
     
-    **主な機能:**
-    - Cortex Search + Complete
-    - モデル選択可能
-    - 会話履歴機能
+    with col3:
+        st.markdown("""
+        #### 🔍 ページ3: Cortex Search RAG
+        
+        コスト最適化されたRAG検索インターフェース。
+        Cortex Agentを使用せず直接検索。
+        
+        **主な機能:**
+        - Cortex Search + Complete
+        - モデル選択可能
+        - 会話履歴機能
+        """)
+
+    st.markdown("---")
     
-    👉 左のサイドバーから「Cortex Search RAG」を選択
-    """)
+    # GPIFスチュワードシップ活動原則の概要
+    st.markdown("### 📜 GPIFスチュワードシップ活動原則（5原則）")
+    
+    principles = [
+        ("原則1", "運用受託機関におけるコーポレート・ガバナンス体制"),
+        ("原則2", "運用受託機関における利益相反管理"),
+        ("原則3", "エンゲージメントを含むスチュワードシップ活動方針"),
+        ("原則4", "投資におけるESGなどのサステナビリティの考慮"),
+        ("原則5", "議決権行使")
+    ]
+    
+    cols = st.columns(5)
+    for idx, (key, title) in enumerate(principles):
+        with cols[idx]:
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+                padding: 15px;
+                border-radius: 10px;
+                text-align: center;
+                height: 120px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
+                <p style="color: #ffffff; font-weight: bold; margin: 0; font-size: 14px;">{key}</p>
+                <p style="color: #e0e0e0; font-size: 11px; margin-top: 8px; line-height: 1.3;">{title}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-st.divider()
+    st.markdown("---")
+    st.info("👈 **使い方**: サイドバーから各ページに移動してください。")
 
-# システム構成
-st.markdown("### 🏗️ システム構成")
+# =========================================================
+# メインアプリケーション
+# =========================================================
+def main():
+    """メインアプリケーション"""
+    
+    # メインページを表示
+    render_home_page()
+    
+    # フッター
+    st.markdown("---")
+    st.caption("© 2025 年金基金 ESG/サステナビリティ分析システム | Powered by Snowflake Cortex AI")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("""
-    **データソース:**
-    - 運用機関サステナビリティレポート（4社）
-    - 海外年金基金レポート（7基金）
-    - GPIF ESGレポート
-    - スチュワードシップ活動原則
-    """)
-
-with col2:
-    st.markdown("""
-    **使用技術:**
-    - `AI_PARSE_DOCUMENT` - PDF解析
-    - `Cortex Search` - セマンティック検索
-    - `Cortex Agent` - AIエージェント
-    - `Cortex Complete` - LLM推論
-    """)
-
-st.divider()
-
-# フッター
-st.caption("Powered by Snowflake Cortex AI | ハンズオン用デモアプリケーション")
-
+if __name__ == "__main__":
+    main()
