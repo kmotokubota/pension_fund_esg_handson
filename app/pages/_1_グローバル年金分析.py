@@ -623,14 +623,22 @@ with tab4:
     )
     
     if uploaded_file is not None:
+        # ファイル名をサニタイズ（スペースをアンダースコアに、特殊文字を除去）
+        import re
+        safe_filename = re.sub(r'[^\w\-_\.]', '_', uploaded_file.name)
+        safe_filename = re.sub(r'_+', '_', safe_filename)  # 連続アンダースコアを1つに
+        safe_filename = safe_filename.strip('_')  # 先頭末尾のアンダースコアを除去
+        
         st.caption(f"選択されたファイル: {uploaded_file.name} ({uploaded_file.size / 1024 / 1024:.2f} MB)")
+        if safe_filename != uploaded_file.name:
+            st.info(f"📝 ファイル名は `{safe_filename}` として保存されます")
         
         if st.button("レポートを追加", type="primary"):
             try:
                 with st.spinner("ステップ1/4: ファイルをステージにアップロード中..."):
-                    stage_path = f"global_pf_esg_report/{uploaded_file.name}"
+                    stage_path = f"global_pf_esg_report/{safe_filename}"
                     
-                    temp_path = f"/tmp/{uploaded_file.name}"
+                    temp_path = f"/tmp/{safe_filename}"
                     with open(temp_path, "wb") as f:
                         f.write(uploaded_file.getbuffer())
                     
@@ -730,7 +738,7 @@ with tab4:
                         chunk_count = 0
                 
                 with st.spinner("ステップ4/4: データを反映中..."):
-                    escaped_filename = uploaded_file.name.replace("'", "''")
+                    escaped_filename = safe_filename.replace("'", "''")
                     
                     view_check_sql = f"""
                     SELECT COUNT(*) as count 
@@ -745,7 +753,7 @@ with tab4:
                 st.success(f"""
                 **レポート追加が完了しました**
                 
-                - ファイル名: {uploaded_file.name}
+                - ファイル名: {safe_filename}
                 - 生成チャンク数: {chunk_count}
                 
                 サイドバーのレポートリストに自動的に追加されます。
