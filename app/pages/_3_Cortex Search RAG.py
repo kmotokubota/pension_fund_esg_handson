@@ -84,6 +84,28 @@ def get_cortex_search_service(service_config: Dict[str, Any]):
     return root.databases[service_config["db"]].schemas[service_config["schema"]].cortex_search_services[service_config["short_name"]]
 
 
+@st.cache_data(ttl=300)
+def get_available_files(service_short_name: str) -> List[str]:
+    """選択されたサービスで利用可能なファイル名一覧を取得"""
+    try:
+        if service_short_name == "SUSTAINABILITY_REPORT":
+            sql = """
+            SELECT DISTINCT file_name 
+            FROM DEMO_DB.DEMO_SUSTAINABILITY.COMBINED_SUSTAINABILITY_CHUNKS_VIEW
+            ORDER BY file_name
+            """
+        else:
+            sql = """
+            SELECT DISTINCT file_name 
+            FROM DEMO_DB.DEMO_SUSTAINABILITY.COMBINED_GLOBAL_SUSTAINABILITY_VIEW
+            ORDER BY file_name
+            """
+        result = session.sql(sql).collect()
+        return [row['FILE_NAME'] for row in result if row['FILE_NAME']]
+    except Exception:
+        return []
+
+
 def query_cortex_search(
     query: str,
     service_config: Dict[str, Any],
@@ -246,23 +268,24 @@ def init_sidebar():
     # --- フィルタ（オプション） ---
     st.sidebar.subheader("フィルタ（オプション）")
     
-    if "filter_enabled" not in st.session_state:
-        st.session_state.filter_enabled = False
+    # ファイル名一覧を取得
+    available_files = get_available_files(st.session_state.selected_service["short_name"])
     
-    st.session_state.filter_enabled = st.sidebar.toggle(
-        "ファイル名フィルタを使用",
-        value=st.session_state.filter_enabled,
-    )
-    
-    if st.session_state.filter_enabled:
-        if "filter_file_name" not in st.session_state:
-            st.session_state.filter_file_name = ""
+    if available_files:
+        file_options = ["すべてのファイル"] + available_files
         
-        st.session_state.filter_file_name = st.sidebar.text_input(
-            "ファイル名（部分一致）",
-            value=st.session_state.filter_file_name,
-            placeholder="例: AMOne",
+        if "filter_file_name" not in st.session_state:
+            st.session_state.filter_file_name = "すべてのファイル"
+        
+        selected_file = st.sidebar.selectbox(
+            "ファイル名でフィルタ",
+            options=file_options,
+            index=file_options.index(st.session_state.filter_file_name) if st.session_state.filter_file_name in file_options else 0,
         )
+        st.session_state.filter_file_name = selected_file
+        st.session_state.filter_enabled = (selected_file != "すべてのファイル")
+    else:
+        st.sidebar.caption("ファイルが見つかりません")
     
     st.sidebar.divider()
     
@@ -352,15 +375,13 @@ def main():
         st.info("左のサイドバーでサービスを選択してください。")
         return
     
-    # 現在の設定を表示
-    with st.expander("現在の設定", expanded=False):
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("検索サービス", service["name"])
-        with col2:
-            st.metric("LLMモデル", st.session_state.selected_model)
-        with col3:
-            st.metric("参照チャンク数", st.session_state.num_retrieved_chunks)
+    # 現在の設定を表示（コンパクト表示）
+    with st.expander("⚙️ 現在の設定", expanded=False):
+        st.caption(f"**検索サービス:** {service['name']}")
+        st.caption(f"**LLMモデル:** {st.session_state.selected_model}")
+        st.caption(f"**参照チャンク数:** {st.session_state.num_retrieved_chunks}")
+        if st.session_state.get("filter_enabled") and st.session_state.get("filter_file_name"):
+            st.caption(f"**フィルタ:** {st.session_state.filter_file_name}")
     
     st.divider()
     
@@ -378,9 +399,10 @@ def main():
         # フィルタ構築
         filter_obj = None
         if st.session_state.get("filter_enabled") and st.session_state.get("filter_file_name"):
-            # 注意: Cortex SearchのフィルタはATTRIBUTES列に対してのみ有効
-            # @contains はARRAY用、テキスト部分一致は検索クエリに含める方が効果的
-            pass
+            filter_file = st.session_state.filter_file_name
+            if filter_file and filter_file != "すべてのファイル":
+                # Cortex Searchのフィルタ（@eq演算子で完全一致）
+                filter_obj = {"@eq": {"file_name": filter_file}}
         
         # アシスタント応答
         with st.chat_message("assistant"):
