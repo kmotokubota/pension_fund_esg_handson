@@ -1,6 +1,6 @@
 # =========================================================
 # 年金基金 ESG/サステナビリティ分析 ハンズオン
-# メインページ
+# Snowflake Cortex AI を活用したサステナビリティレポート分析
 # =========================================================
 # 最終更新: 2025/01
 # =========================================================
@@ -16,7 +16,7 @@ from snowflake.snowpark.context import get_active_session
 # =========================================================
 st.set_page_config(
     page_title="年金基金 ESG分析",
-    page_icon="🌍",
+    page_icon="🏛️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -34,8 +34,8 @@ session = get_snowflake_session()
 # =========================================================
 def render_home_page():
     """ホームページを表示"""
-    st.title("🌍 年金基金 ESG/サステナビリティ分析")
-    st.markdown("### Snowflake Cortex AI を活用した年金基金レポート分析プラットフォーム")
+    st.title("🏛️ 年金基金 サステナビリティ分析システム")
+    st.markdown("### Snowflake Cortex AI を活用したサステナビリティレポート分析")
     
     st.markdown("---")
     
@@ -62,10 +62,6 @@ def render_home_page():
         - GPIFスチュワードシップ活動原則（5原則）に基づく評価
         - Cortex Agentを活用した自然言語検索
         - 運用機関別の対応状況分析
-        
-        **3. Cortex Search RAG**
-        - コスト最適化されたRAG検索
-        - Cortex Search + Completeの直接利用
         """)
         
     with col2:
@@ -95,10 +91,10 @@ def render_home_page():
 
     st.markdown("---")
     
-    # ページ構成
+    # ワークショップ手順
     st.markdown("### 📚 ページ構成")
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
@@ -125,19 +121,6 @@ def render_home_page():
         - 自然言語での検索・問い合わせ
         - 原則別の対応度評価
         - 総合評価レポート生成
-        """)
-    
-    with col3:
-        st.markdown("""
-        #### 🔍 ページ3: Cortex Search RAG
-        
-        コスト最適化されたRAG検索インターフェース。
-        Cortex Agentを使用せず直接検索。
-        
-        **主な機能:**
-        - Cortex Search + Complete
-        - モデル選択可能
-        - 会話履歴機能
         """)
 
     st.markdown("---")
@@ -186,7 +169,7 @@ def main():
     
     # フッター
     st.markdown("---")
-    st.caption("© 2025 年金基金 ESG/サステナビリティ分析システム | Powered by Snowflake Cortex AI")
+    st.caption("© 2025 年金基金 サステナビリティ分析システム | Powered by Snowflake Cortex AI")
 
 if __name__ == "__main__":
     main()
