@@ -12,15 +12,6 @@ from snowflake.snowpark.context import get_active_session
 from snowflake.core import Root
 
 # =========================================================
-# ページ設定
-# =========================================================
-st.set_page_config(
-    page_title="Cortex Search RAG",
-    page_icon="🔍",
-    layout="wide"
-)
-
-# =========================================================
 # カスタムCSS（Figma風デザイン）
 # =========================================================
 st.markdown("""
