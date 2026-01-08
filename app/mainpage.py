@@ -162,9 +162,9 @@ def home_page():
 # ナビゲーション設定（日本語サイドバー + 英語ファイル名）
 # =========================================================
 pg = st.navigation([
-    st.Page(home_page, title="ホーム", icon="🏠", default=True),
-    st.Page("pages/1_global_analysis.py", title="グローバル年金分析", icon="📊"),
-    st.Page("pages/2_stewardship_evaluation.py", title="スチュワードシップ原則評価", icon="🤖"),
-    st.Page("pages/3_cortex_search_rag.py", title="Cortex Search RAG", icon="🔍"),
+    st.Page(home_page, title="ホーム", default=True),
+    st.Page("pages/1_global_analysis.py", title="グローバル年金分析"),
+    st.Page("pages/2_stewardship_evaluation.py", title="スチュワードシップ原則評価"),
+    st.Page("pages/3_cortex_search_rag.py", title="Cortex Search RAG"),
 ])
 pg.run()
