@@ -24,10 +24,10 @@ st.set_page_config(
 # =========================================================
 # ナビゲーション設定（日本語サイドバー + 英語ファイル名）
 # =========================================================
-home_page = st.Page("pages/0_home.py", title="ホーム", icon="🏠", default=True)
-page1 = st.Page("pages/1_global_analysis.py", title="グローバル年金分析", icon="📊")
-page2 = st.Page("pages/2_stewardship_evaluation.py", title="スチュワードシップ原則評価", icon="🤖")
-page3 = st.Page("pages/3_cortex_search_rag.py", title="Cortex Search RAG", icon="🔍")
+home_page = st.Page("pages/0_home.py", title="ホーム", default=True)
+page1 = st.Page("pages/1_global_analysis.py", title="グローバル年金分析")
+page2 = st.Page("pages/2_stewardship_evaluation.py", title="スチュワードシップ原則評価")
+page3 = st.Page("pages/3_cortex_search_rag.py", title="Cortex Search RAG")
 
 pg = st.navigation([home_page, page1, page2, page3])
 pg.run()
