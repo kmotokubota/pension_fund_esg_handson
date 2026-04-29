@@ -58,18 +58,18 @@ LIST @document_stage;
 
 CREATE OR REPLACE API INTEGRATION git_api_integration
     API_PROVIDER = git_https_api
-    API_ALLOWED_PREFIXES = ('https://github.com/kmotokubota/')
+    API_ALLOWED_PREFIXES = ('https://github.com/sfc-gh-kmotokubota/')
     ENABLED = TRUE;
 
 -- ---------------------------------------------------------
 -- Step 1-5: Git連携 - Gitリポジトリの作成
 -- ---------------------------------------------------------
 -- ハンズオン用のGitHubリポジトリを登録
--- リポジトリURL: https://github.com/kmotokubota/pension_fund_esg_handson
+-- リポジトリURL: https://github.com/sfc-gh-kmotokubota/pension_fund_esg_handson
 
 CREATE OR REPLACE GIT REPOSITORY pension_fund_esg_handson
     API_INTEGRATION = git_api_integration
-    ORIGIN = 'https://github.com/kmotokubota/pension_fund_esg_handson.git';
+    ORIGIN = 'https://github.com/sfc-gh-kmotokubota/pension_fund_esg_handson.git';
 
 -- Gitリポジトリの確認
 SHOW GIT REPOSITORIES;
