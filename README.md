@@ -48,7 +48,7 @@ Notebook内のセルを実行し、PDF資料の構造化やCortex Search、Corte
 ### 3. Streamlitアプリの実行
 Snowsight > Streamlit > Create Streamlit App から新規アプリを作成し、`mainpage.py` の内容をコピーして実行します。
 
-### 4. Snowflake Intelligenceの実行
+### 4. Snowflake CoWorkの実行
 
 ## ライセンス
 
